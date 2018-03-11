@@ -1,4 +1,4 @@
-# ZSH fast command-not-found plugin for OSX
+# ZSH fast command-not-found plugin for macOS
 
 The purpose of this plugin is to provide a faster alternative to
 `oh-my-zsh` / `prezto` one, which runs multiple useless checks, and
