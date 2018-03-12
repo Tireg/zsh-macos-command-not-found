@@ -26,16 +26,16 @@ function command_not_found_handler() {
 	# The code below is based off this Linux Journal article:
 	#   http://www.linuxjournal.com/content/bash-command-not-found
 
-	! (( "${SKIP_BREW}" )) && {
-			# Brew command-not-found exists, so we can use it
-			local txt="$(brew which-formula --explain "${cmd}" 2>/dev/null)";
-			# If formula has been found, print instructions
-			[ ! -z "${txt}" ] && echo "${txt}";
-		} \
-		|| {
-			# Zsh versions 5.3 and above don't print this for us.
-			[[ "${ZSH_VERSION}" > "5.2" ]] \
-				&& echo "zsh: command not found: ${cmd}";
-		}
+	! (( ${SKIP_BREW} )) && {
+		# Brew command-not-found exists, so we can use it
+		local txt="$(brew which-formula --explain "${cmd}" 2>/dev/null)";
+		# If formula has been found, print instructions
+		[ ! -z "${txt}" ] && echo "${txt}";
+	} \
+	|| {
+		# Zsh versions 5.3 and above don't print this for us.
+		[[ "${ZSH_VERSION}" > "5.2" ]] \
+			&& echo "zsh: command not found: ${cmd}";
+	}
 	return 127;
 }
