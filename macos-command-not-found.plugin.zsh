@@ -11,17 +11,22 @@
 function command_not_found_handler() {
 	local cmd="$1";
 
-	# The code below is based off this Linux Journal article:
-	#   http://www.linuxjournal.com/content/bash-command-not-found
+	zstyle -t ':tireg:module:command-not-found' use-brew;
+	local SKIP_BREW="$?";
 
 	# Do not run when inside Midnight Commander or within a Pipe,
 	# except if on Travis-CI.
 	# Then check for brew command-not-found tap
-	test -z "${CONTINUOUS_INTEGRATION}" \
+	[[ "${SKIP_BREW}" -eq 2 ]] \
+		&& test -z "${CONTINUOUS_INTEGRATION}" \
 		&& ! test -n "${NC_SID}" -o ! -t 1 \
 		&& (( $+commands[brew] )) \
-		&& brew command which-formula >/dev/null \
-		&& {
+		&& SKIP_BREW="0";
+
+	# The code below is based off this Linux Journal article:
+	#   http://www.linuxjournal.com/content/bash-command-not-found
+
+	! (( "${SKIP_BREW}" )) && {
 			# Brew command-not-found exists, so we can use it
 			local txt="$(brew which-formula --explain "${cmd}" 2>/dev/null)";
 			# If formula has been found, print instructions
