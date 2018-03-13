@@ -21,7 +21,8 @@ function command_not_found_handler() {
 		&& test -z "${CONTINUOUS_INTEGRATION}" \
 		&& ! test -n "${NC_SID}" -o ! -t 1 \
 		&& (( $+commands[brew] )) \
-		&& SKIP_BREW="0";
+		&& SKIP_BREW="0" \
+		&& zstyle ':tireg:module:command-not-found' use-brew true;
 
 	# The code below is based off this Linux Journal article:
 	#   http://www.linuxjournal.com/content/bash-command-not-found
