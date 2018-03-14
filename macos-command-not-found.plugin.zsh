@@ -8,38 +8,40 @@
 #       VERSION:  1.0.0
 # ------------------------------------------------------------------------------
 
-function command_not_found_handler() {
-	local cmd="$1";
-	typeset -gi _CMDNF_SKIP_BREW;
+zstyle -t ':tireg:module:command-not-found' skip-brew;
+_SKIP_BREW="$?"
 
-	# Initialize cache if not set
-	if [ -z "${_CMDNF_SKIP_BREW}" ]; then
-		# Do not run when inside Midnight Commander or within a Pipe,
-		# except if on Travis-CI.
-		# Then check for brew command-not-found tap
-		if   test -z "${CONTINUOUS_INTEGRATION}" && \
-		   ! test -n "${NC_SID}" -o ! -t 1 && \
-		   (( ${+commands[brew]} ));
-		then
-			_CMDNF_SKIP_BREW="0";
-		else
-			_CMDNF_SKIP_BREW="1";
-		fi
-	fi
+if [ "${_SKIP_BREW}" -eq 2 ]; then
+	test -z "${CONTINUOUS_INTEGRATION}" \
+		&& ! test -n "${NC_SID}" -o ! -t 1 \
+		&& (( ${+commands[brew]} )) \
+		&& brew command which-formula 2>/dev/null >/dev/null \
+		&& zstyle ':tireg:module:command-not-found' skip-brew false \
+		|| zstyle ':tireg:module:command-not-found' skip-brew true;
 
-	# The code below is based off this Linux Journal article:
-	#   http://www.linuxjournal.com/content/bash-command-not-found
-	(( ${SKIP_BREW} )) && {
-		# Zsh versions 5.3 and above don't print this for us.
-		[[ "${ZSH_VERSION}" > "5.2" ]] \
-			&& echo "zsh: command not found: ${cmd}";
-	} || {
+	zstyle -t ':tireg:module:command-not-found' skip-brew;
+	_SKIP_BREW="$?";
+fi
+
+if [ "${_SKIP_BREW}" -eq 1 ]; then
+	# Use brew
+	function command_not_found_handler() {
+		local cmd="$1";
 		# Brew command-not-found exists, so we can use it
 		local txt="$(brew which-formula --explain "${cmd}" 2>/dev/null)";
 		# If formula has been found, print instructions
-		[ ! -z "${txt}" ] && echo "${txt}";
+		[ ! -z "${txt}" ] && echo "${txt}" || {
+			[[ "${ZSH_VERSION}" > "5.2" ]] \
+				&& echo "zsh: command not found: ${cmd}";
+		};
+		return 127;
 	}
-
-	# Return command not found error code
-	return 127;
-}
+else
+	# Skip brew
+	function command_not_found_handler() {
+		local cmd="$1";
+		[[ "${ZSH_VERSION}" > "5.2" ]] \
+			&& echo "zsh: command not found: ${cmd}";
+		return 127;
+	}
+fi
