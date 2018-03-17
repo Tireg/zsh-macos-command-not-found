@@ -12,6 +12,8 @@ function cmdnf_classic_handler() {
 	local cmd="${1}";
 
 	[[ "${ZSH_VERSION}" > "5.2" ]] && echo "zsh: command not found: ${cmd}";
+
+	return 127;
 }
 
 function cmdnf_brew_handler() {
@@ -22,6 +24,8 @@ function cmdnf_brew_handler() {
 
 	# Output if formula found, else print command not found
 	[ ! -z "${txt}" ] && echo "${txt}" || cmdnf_classic_handler "${cmd}";
+
+	return 127;
 }
 
 # Check if brew should be used
@@ -32,11 +36,13 @@ test -z "${CONTINUOUS_INTEGRATION}" \
 		# Use brew handler if brew is installed
 		function command_not_found_handler() {
 			cmdnf_brew_handler "${@}";
+			return "$?";
 		}
 	} \
 	|| {
 		# Use classic handler
 		function command_not_found_handler() {
 			cmdnf_classic_handler "${@}";
+			return "$?";
 		}
 	}
