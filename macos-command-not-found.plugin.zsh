@@ -18,13 +18,9 @@ function cmdnf_brew_handler() {
 	local cmd="${1}";
 
 	# Use brew which-formula
-	local txt
-	if ! txt="$(brew which-formula --explain "${cmd}" 2>/dev/null)"; then
-		# brew command-not-found is not installed
-		cmdnf_classic_handler;
-	fi
+	local txt="$(brew which-formula --explain "${cmd}" 2>/dev/null)";
 
-	#
+	# Output if formula found, else print command not found
 	[ ! -z "${txt}" ] && echo "${txt}" || cmdnf_classic_handler "${cmd}";
 }
 
